@@ -9,7 +9,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
   }
 
     const token = await getAuth(code)
-    console.log(token)
+
     return 
-  });
+  })
 }
