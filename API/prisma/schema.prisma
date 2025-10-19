@@ -61,16 +61,18 @@ enum WebhookStatus {
 }
 
 model users {
-  id                  String              @id @default(uuid())
-  email               String              @unique
-  github_username     String              @unique
-  notion_access_token String?
-  name                String?
-  avatar_url          String?
-  settings            Json?
-  created_at          DateTime            @default(now())
-  updated_at          DateTime            @updatedAt
-  is_active           Boolean             @default(true)
+  id                      String              @id @default(uuid())
+  email                   String              @unique
+  github_username         String              @unique
+  notion_access_token     String?
+  github_access_token     String?
+  github_token_expires_at DateTime?
+  name                    String?
+  avatar_url              String?
+  settings                Json?
+  created_at              DateTime            @default(now())
+  updated_at              DateTime            @updatedAt
+  is_active               Boolean             @default(true)
 
   repositories        repositories[]
   analysis_jobs       analysis_jobs[]
