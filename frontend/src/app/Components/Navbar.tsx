@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { Menu, X, Github } from 'lucide-react'
-import githubLogin from '@/app/lib/auth'
+import { Menu, X } from 'lucide-react'
+import AuthButton from './auth/AuthButton'
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const toggleSidebar = () => {
@@ -40,11 +41,7 @@ export default function Navbar() {
             </button>
           </nav>
           <div className="absolute bottom-6 left-6 right-6">
-            <button onClick={githubLogin}
-             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors">
-              <Github className="w-5 h-5" />
-              Sign in with GitHub
-            </button>
+            <AuthButton />
           </div>
         </div>
       </div>

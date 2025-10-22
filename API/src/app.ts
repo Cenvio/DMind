@@ -1,13 +1,15 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
-import authRoutes from '../router/auth';
-import 'dotenv/config';
+import cookie from '@fastify/cookie'
+import authRoutes from '../router/auth'
 
 export function buildApp() {
   const fastify = Fastify({
     logger: true
   })
+
+  fastify.register(cookie)
 
   fastify.register(cors, {
     origin: process.env.FRONTEND_URL,
@@ -23,14 +25,14 @@ export function buildApp() {
     allowList: [],
     redis: undefined,
   })
-
+  
   fastify.register(async (instance) => {
     instance.register(rateLimit, {
-      max: 10,
+      max: 500,
       timeWindow: '15 minutes',
     })
 
-    instance.register(authRoutes, { prefix: 'auth/github/callback' })
+    instance.register(authRoutes, { prefix: 'auth' })
   })
 
   return fastify

@@ -4,18 +4,26 @@ import { verifyAccessToken, JWTPayload } from '../utils/jwt'
 declare module 'fastify' {
   interface FastifyRequest {
     user?: JWTPayload
+    cookies: {
+      accessToken?: string
+      refreshToken?: string
+      [key: string]: string | undefined
+    }
   }
 }
 
 export const authenticateToken = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const authHeader = request.headers.authorization
+    const cookieToken = request.cookies?.accessToken
 
-    if (!authHeader) {
-      return reply.status(401).send({ error: 'No authorization header provided' })
+    let token: string | undefined
+
+    if (authHeader) {
+      token = authHeader.startsWith('Bearer') ? authHeader.substring(7) : authHeader
+    } else if (cookieToken) {
+      token = cookieToken
     }
-
-    const token = authHeader.startsWith('Bearer') ? authHeader.substring(7) : authHeader
 
     if (!token) {
       return reply.status(401).send({ error: 'No token provided' })
