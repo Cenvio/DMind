@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { getAuth, getGitHubUser, findOrCreateUser } from '../Service/authService'
 import { generateTokens, verifyRefreshToken, verifyAccessToken } from '../utils/jwt'
-import { PrismaClient } from '../src/generated/prisma'
+import { PrismaClient } from '@prisma/client'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const prisma = new PrismaClient()
