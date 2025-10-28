@@ -16,7 +16,7 @@ export default function AuthButton() {
     return (
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <Image src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full" />
+          <img src={user.avatarUrl} alt={user.name} width={32} height={32} className="rounded-full" />
           <span className="text-sm font-medium">{user.name}</span>
         </div>
         <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
