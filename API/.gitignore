@@ -1,41 +1,44 @@
-node_modules/
-**/node_modules/
+# compiled output
+/dist
+/node_modules
 
-dist/
-build/
-*.tsbuildinfo
-
-.env
-.env.local
-.env.*.local
-
-logs/
+# Logs
+logs
 *.log
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 lerna-debug.log*
 
+# OS
 .DS_Store
-Thumbs.db
-*.swp
-*.swo
-*~
 
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Tests
+/coverage
+/.nyc_output
 
-coverage/
-.nyc_output/
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-*.tmp
-.cache/
-.temp/
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-/src/generated/prisma
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+
+# Prisma
+prisma/migrations/*_migration/
