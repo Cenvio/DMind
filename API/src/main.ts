@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function Main() {
@@ -8,8 +10,15 @@ async function Main() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
+  const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
+  const port = configService.get<number>('port');
+  const frontendUrl = configService.get<string>('frontend.url');
+
+  app.use(helmet());
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: frontendUrl,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -24,8 +33,8 @@ async function Main() {
     }),
   );
 
-  await app.listen(3001, '0.0.0.0');
-  console.log('Server listening on http://localhost:3001');
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Server listening on http://localhost:${port}`);
 }
 
 Main();

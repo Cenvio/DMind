@@ -16,5 +16,5 @@ export default () => ({
   frontend: {
     url: process.env.FRONTEND_URL,
   },
-  isProduction: process.env.NODE_ENV,
+  isProduction: process.env.NODE_ENV === 'production',
 })

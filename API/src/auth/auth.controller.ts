@@ -9,6 +9,7 @@ import {
   UseGuards,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -19,10 +20,45 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private authService: AuthService,
     private configService: ConfigService,
   ) {}
+
+  private setCookies(res: Response, accessToken: string, refreshToken: string) {
+    const isProduction = this.configService.get<boolean>('isProduction');
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/',
+    };
+
+    res
+      .cookie('accessToken', accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie('refreshToken', refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+  }
+
+  private clearCookies(res: Response) {
+    const isProduction = this.configService.get<boolean>('isProduction');
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/',
+    };
+
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+  }
 
   @Get('github/callback')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
@@ -36,29 +72,14 @@ export class AuthController {
 
     try {
       const { tokens } = await this.authService.handleGitHubCallback(code);
-      const isProduction = this.configService.get('isProduction');
 
-      res
-        .cookie('accessToken', tokens.accessToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax',
-          maxAge: 15 * 60 * 1000,
-          path: '/',
-        })
-        .cookie('refreshToken', tokens.refreshToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-          path: '/',
-        });
+      this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 
       return res.redirect(
         `${this.configService.get('frontend.url')}/auth/callback`,
       );
     } catch (error) {
-      console.error('Authentication error:', error);
+      this.logger.error('Authentication error:', error);
       throw new UnauthorizedException({
         error: 'Authentication failed',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -77,27 +98,12 @@ export class AuthController {
 
     try {
       const tokens = await this.authService.refreshTokens(refreshToken);
-      const isProduction = this.configService.get('isProduction');
 
-      res
-        .cookie('accessToken', tokens.accessToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax',
-          maxAge: 15 * 60 * 1000,
-          path: '/',
-        })
-        .cookie('refreshToken', tokens.refreshToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-          path: '/',
-        });
+      this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 
       return res.status(HttpStatus.OK).json({ success: true });
     } catch (error) {
-      console.error('Token refresh error:', error);
+      this.logger.error('Token refresh error:', error);
       throw new UnauthorizedException({
         error: 'Token refresh failed',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -106,9 +112,9 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async logout(@Res() res: Response) {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
+    this.clearCookies(res);
 
     return res.status(HttpStatus.OK).json({
       success: true,
@@ -118,7 +124,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getCurrentUser(@CurrentUser() user: any) {
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  async getCurrentUser(@CurrentUser() user: { userId: string; email: string; githubUsername: string }) {
     const userData = await this.authService.getCurrentUser(user.userId);
 
     return {

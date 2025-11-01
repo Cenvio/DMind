@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/context/AuthContext'
 import githubLogin from '@/app/lib/auth'
-import Image from 'next/image'
 
 export default function AuthButton() {
   const { user, isAuthenticated, logout, isLoading } = useAuth()

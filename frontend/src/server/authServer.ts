@@ -32,7 +32,9 @@ axiosInstance.interceptors.response.use(
         }
         throw new Error('Session expired. Please log in again.')
       }
-    }  
+    }
+
+    return Promise.reject(error)
   }
 )
 
@@ -46,6 +48,7 @@ async function refreshToken(): Promise<boolean> {
     try {
       const response = await axios.post(
         `${API_URL}/auth/refresh`,
+        {},
         { withCredentials: true }
       )
 
